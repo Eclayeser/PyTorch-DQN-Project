@@ -1,1 +1,7 @@
-.private
+.venv/
+__pycache__/
+.private/
+*.pyc
+runs/
+*.mp4
+*.gif
