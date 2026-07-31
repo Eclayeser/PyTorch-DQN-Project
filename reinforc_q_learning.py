@@ -291,7 +291,6 @@ GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.01
 EPS_DECAY = 2500
-# ------------------ STOPPED HERE -------------------------
 TAU = 0.005
 LR = 3e-4
 
@@ -441,7 +440,7 @@ def optimize_model():
 if torch.cuda.is_available() or torch.backends.mps.is_available():
     num_episodes = 600
 else:
-    num_episodes = 161
+    num_episodes = 201
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
