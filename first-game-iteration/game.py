@@ -36,8 +36,12 @@ PLATFORM_MAX_SPEED = 380.0              # capped
 BALL_RADIUS = 8
 BALL_SPEED = 700.0                      # constant speed magnitude, px/s
 
-MAX_DURATION_SECONDS = 10.0             # truncate (success) after this long
+BALL_LAUNCH_ANGLE_MIN_DEG = 30.0        # 0 = straight right, 90 = straight up, 180 = straight left
+BALL_LAUNCH_ANGLE_MAX_DEG = 150.0
+BALL_SPAWN_MARGIN = BALL_RADIUS * 3     # offset from walls/platform
 
+MAX_DURATION_SECONDS = 10.0             # truncate (success) after this long
+ALIGNMENT_REWARD_WEIGHT = 0.5           # weight of the x-distance shaping term
 
 # Action space:
 ACTION_NONE = 0
@@ -85,33 +89,33 @@ class BouncePlatformEnv(gym.Env):
         self.steps = 0
         self.terminated = False
         self.truncated = False
+        self.plat_bounced = False
 
         # render resources
         self.screen = None
         self.clock = None
         self.font = None
 
-    def reset(self, seed=None):
+    def reset(self, seed=None, options=None):
         """Set intial state"""
         super().reset(seed=seed) 
 
         self.platform_x = self.width / 2.0
         self.platform_vx = 0.0
 
-        self.ball_x = self.width / 2.0
-        self.ball_y = self.height / 3.0
-
-        # Start moving diagonally upwards at a constant speed; randomize
-        # which side it heads toward first using the seeded Gymnasium RNG.
-        direction = self.np_random.choice([-1, 1])
-        component = BALL_SPEED / math.sqrt(2)
-        self.ball_vx = float(direction * component)
-        self.ball_vy = -component  # negative y = upward on screen
+        # Spawn ball
+        self.ball_x = float(self.np_random.uniform(BALL_SPAWN_MARGIN, self.width - BALL_SPAWN_MARGIN))
+        self.ball_y = float(self.np_random.uniform(BALL_SPAWN_MARGIN, PLATFORM_Y - BALL_SPAWN_MARGIN))
+        angle_deg = self.np_random.uniform(BALL_LAUNCH_ANGLE_MIN_DEG, BALL_LAUNCH_ANGLE_MAX_DEG)
+        angle_rad = math.radians(angle_deg)
+        self.ball_vx = float(BALL_SPEED * math.cos(angle_rad))
+        self.ball_vy = float(-BALL_SPEED * math.sin(angle_rad))  # negative y = upward on screen
 
         self.elapsed_time = 0.0
         self.steps = 0
         self.terminated = False
         self.truncated = False
+        self.plat_bounced = False
 
         observations = self._get_obs()
         info = self._get_info()
@@ -136,6 +140,29 @@ class BouncePlatformEnv(gym.Env):
     def _get_info(self):
         return {"elapsed_time": self.elapsed_time, "steps": self.steps}
 
+    def calc_reward(self):
+        """
+        Reward depends on:
+        - relative pos of plat to the ball
+        - whether ball bounced of the plat
+        - survial time
+        - successful and unssuccessful outcomes
+        """
+        relative_x_diff = 1.0 - (abs(self.platform_x - self.ball_x) / self.width)
+        reward = ALIGNMENT_REWARD_WEIGHT * relative_x_diff
+
+        if self.plat_bounced == True:
+            reward += 5.0
+
+        if self.terminated:
+            reward -= 10.0
+        elif self.truncated:
+            reward += 15.0
+        else:
+            reward += 0.02
+
+        return reward
+
     def step(self, action):
         """
         Gymnasium step: current state + action -> next state.
@@ -150,11 +177,7 @@ class BouncePlatformEnv(gym.Env):
         if self.elapsed_time >= MAX_DURATION_SECONDS and not self.terminated:
             self.truncated = True
         
-        # reward calculation
-        if self.terminated:
-            reward = -10.0
-        else:
-            reward = 0.05
+        reward = self.calc_reward()
 
         if self.render_mode == "human":
             self.render()
@@ -195,6 +218,7 @@ class BouncePlatformEnv(gym.Env):
 
 
     def apply_ball_physics(self):
+        self.plat_bounced = False
         self.ball_x += self.ball_vx * DT
         self.ball_y += self.ball_vy * DT
 
@@ -217,12 +241,11 @@ class BouncePlatformEnv(gym.Env):
             self.ball_vy > 0
             and self.ball_y + BALL_RADIUS >= PLATFORM_Y
             and self.ball_y - BALL_RADIUS <= PLATFORM_Y + PLATFORM_HEIGHT
-            and (self.platform_x - half_w - BALL_RADIUS)
-            <= self.ball_x
-            <= (self.platform_x + half_w + BALL_RADIUS)
+            and (self.platform_x - half_w - BALL_RADIUS) <= self.ball_x <= (self.platform_x + half_w + BALL_RADIUS)
         ):
             self.ball_y = PLATFORM_Y - BALL_RADIUS
             self.ball_vy = -abs(self.ball_vy)
+            self.plat_bounced = True
 
         # Bottom of the screen -> termination (missed the ball)
         if self.ball_y + BALL_RADIUS >= self.height:
