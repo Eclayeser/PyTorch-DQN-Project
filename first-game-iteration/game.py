@@ -41,7 +41,6 @@ BALL_LAUNCH_ANGLE_MAX_DEG = 150.0
 BALL_SPAWN_MARGIN = BALL_RADIUS * 3     # offset from walls/platform
 
 MAX_DURATION_SECONDS = 10.0             # truncate (success) after this long
-ALIGNMENT_REWARD_WEIGHT = 0.5           # weight of the x-distance shaping term
 
 # Action space:
 ACTION_NONE = 0
@@ -126,7 +125,7 @@ class BouncePlatformEnv(gym.Env):
         return observations, info
 
     def _get_obs(self):
-        return np.array(
+        obs = np.array(
             [
                 self.platform_x,
                 self.platform_vx,
@@ -136,30 +135,41 @@ class BouncePlatformEnv(gym.Env):
                 self.ball_vy,
             ], dtype=np.float32,
         )
+        return obs/self.observation_space.high
 
     def _get_info(self):
         return {"elapsed_time": self.elapsed_time, "steps": self.steps}
 
     def calc_reward(self):
         """
-        Reward depends on:
-        - relative pos of plat to the ball
-        - whether ball bounced of the plat
-        - survial time
-        - successful and unssuccessful outcomes
+        Improved reward function with normalized scales and contextual shaping.
         """
-        relative_x_diff = 1.0 - (abs(self.platform_x - self.ball_x) / self.width)
-        reward = ALIGNMENT_REWARD_WEIGHT * relative_x_diff
+        reward = 0.0
 
-        if self.plat_bounced == True:
-            reward += 5.0
+        # survival
+        if not self.terminated and not self.truncated:
+            reward += 0.005 
+
+        # alignment
+        # only reward if the ball is moving downwards
+        if self.ball_vy > 0:
+            # X-alignment (0-1)
+            relative_x_align = 1.0 - (abs(self.platform_x - self.ball_x) / self.width)
+            
+            # Y-closeness (0-1)
+            y_distance = max(0.0, PLATFORM_Y - self.ball_y)
+            relative_y_closeness = 1.0 - (y_distance / PLATFORM_Y)
+            
+            reward += 0.02 * (relative_x_align ** 2) * relative_y_closeness
+
+        # sparse outcomes
+        if self.plat_bounced:
+            reward += 1.0
 
         if self.terminated:
-            reward -= 10.0
+            reward -= 1.0
         elif self.truncated:
-            reward += 15.0
-        else:
-            reward += 0.02
+            reward += 1.0
 
         return reward
 

@@ -74,7 +74,7 @@ BATCH_SIZE = 128
 GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.01
-EPS_DECAY = 2500
+EPS_DECAY = 15000
 TAU = 0.005
 LR = 3e-4
 
@@ -98,7 +98,7 @@ memory = ReplayMemory(10000)
 
 steps_done = 0
 episode_durations = []
-num_episodes = 201
+num_episodes = 401
 
 
 def select_action(state):
@@ -192,7 +192,7 @@ for i_episode in range(num_episodes):
         reward = torch.tensor([reward], device=device)
         done = terminated or truncated
 
-        if terminated:
+        if terminated or truncated:
             next_state = None
         else:
             next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
