@@ -175,32 +175,35 @@ class ZoneCaptureEnv(gym.Env):
         """Set initial state and setup gym np_random."""
         super().reset(seed=seed) 
 
-        # Reset objects
-        self._update_zone_position(0.0)
-        self.agent.reset(self.width * 0.2, self.height * 0.25)
-        self.opponent.reset(self.width * 0.2, self.height * 0.75)
-        self.ag_in_zone = False
-        self.op_in_zone = False
-
-        # Reset episod info
+        # Reset episode info (elapsed_time must be set before positioning the zone)
         self.elapsed_time = 0.0
         self.is_hot = False
         self.time_until_transition = self.neutral_duration
         self.steps = 0
         self.terminated = False
         self.truncated = False
-        self.control_state = 0                                      # 1 (self), -1 (opponent), 0 (contested/neutral)
+        self.control_state = 0
+
+        # Reset objects
+        self._update_zone_position(0.0)
+        self.agent.reset(self.width * 0.2, self.height * 0.25)
+        self.opponent.reset(self.width * 0.2, self.height * 0.75)
+        self.ag_in_zone = False
+        self.op_in_zone = False                                    # 1 (self), -1 (opponent), 0 (contested/neutral)
         
         if self.render_mode == "human":
             self.render()
 
-        return self.get_obs(), self._get_info()
+        return self.get_obs(), self.get_info()
 
 
     def _update_zone_position(self, dt):
         """Moves zone in a drifting Lissajous curve figure-8 pattern."""
         if dt == 0:
-            self.zone_x, self.zone_y = 0.0, 0.0
+            # Initial placement
+            t = self.elapsed_time * 0.5
+            self.zone_x = self.width / 2.0 + (self.width * 0.3) * math.cos(t)
+            self.zone_y = self.height / 2.0 + (self.height * 0.3) * math.sin(t * 2.0)
             self.zone_vx, self.zone_vy = 0.0, 0.0
 
         else:
@@ -245,7 +248,7 @@ class ZoneCaptureEnv(gym.Env):
         return np.array(obs, dtype=np.float32)
 
 
-    def _get_info(self):
+    def get_info(self):
         return {
             "elapsed_time": self.elapsed_time,
             "steps": self.steps,
@@ -263,13 +266,12 @@ class ZoneCaptureEnv(gym.Env):
         reward = 0.0
 
         # Agent and Opponent battle
-        if not self.ag_in_zone:
-            reward -= 1.0 * DT  
-        else:
-            if self.ag_in_zone and not self.op_in_zone:
-                reward += 1.0 * DT
-            elif self.op_in_zone and not self.ag_in_zone:
-                reward -= 1.0 * DT
+        if self.ag_in_zone and not self.op_in_zone and not self.is_hot:
+            reward += 1.0 * DT
+        elif self.op_in_zone and not self.ag_in_zone:
+            reward -= 1.0 * DT
+        elif not self.ag_in_zone:
+            reward -= 0.5 * DT
 
 
         # Penalise for being in the hot zone
@@ -278,13 +280,19 @@ class ZoneCaptureEnv(gym.Env):
             if proximity <= 1:
                 reward -= 0.1 * (1 - proximity) * DT
 
+        # Penalise for being to far away when not hot
+        if not self.is_hot:
+            max_dist = math.hypot(self.width, self.height)
+            distance_penalty = (ag_to_zone_dist / max_dist) * DT
+            reward -= distance_penalty
+
         # Winning / Losing 
         if self.terminated or self.truncated:
             score_gap = self.agent.control_score - self.opponent.control_score
-            if score_gap >= 10.0:
-                reward += 20.0
-            elif score_gap <= -10.0:
-                reward -= 20.0
+            if score_gap >= GAP_TO_WIN:
+                reward += 5.0
+            elif score_gap <= -GAP_TO_WIN:
+                reward -= 5.0
 
         return reward
 
@@ -321,22 +329,22 @@ class ZoneCaptureEnv(gym.Env):
             b2.vy += vel_diff2 * normal_y
 
 
-    def step(self, opponent_action_passed = 0, agent_action_passed = 0):
+    def step(self, action):
         """Gymnasium step: current state + action -> next state."""
 
         # Deciding actions based on type
         if self.type == "bot-testing": # agent is bot, opponent is you
             agent_action = self.agent.get_bot_action(self.zone_x, self.zone_y, self.np_random, self.is_hot, self.zone_radius)
-            opponent_action = opponent_action_passed
+            opponent_action = action
 
         elif self.type == "agent-testing": # agent is AI agent, opponent is you
-            agent_action = agent_action_passed
-            opponent_action = opponent_action_passed
+            # Expecting action to be a tuple/list: (agent_action, opponent_action)
+            agent_action = action[0] if isinstance(action, (list, tuple)) else action
+            opponent_action = action[1] if isinstance(action, (list, tuple)) else 0
 
         else: # training: agent is AI agent, opponent is bot
-            agent_action = agent_action_passed
+            agent_action = action
             opponent_action = self.opponent.get_bot_action(self.zone_x, self.zone_y, self.np_random, self.is_hot, self.zone_radius)
-
         # Apply actions
         self.agent.apply_action(agent_action)
         self.opponent.apply_action(opponent_action)
@@ -397,7 +405,7 @@ class ZoneCaptureEnv(gym.Env):
         if self.render_mode == "human":
             self.render()
 
-        return self.get_obs(), reward, self.terminated, self.truncated, self._get_info()
+        return self.get_obs(), reward, self.terminated, self.truncated, self.get_info()
 
     def render(self):
         """Render the current state."""
@@ -496,11 +504,11 @@ def run_manual():
                 running = False
 
         action = read_keyboard_action()
-        _, reward, terminated, truncated, info = env.step(opponent_action_passed=action)
+        _, reward, terminated, truncated, info = env.step(action)
         total_reward += reward 
 
         if terminated or truncated:
-            reason = "Score Gap >= 10" if terminated else "Time Limit Reached"
+            reason = f"Score Gap >= {GAP_TO_WIN}" if terminated else "Time Limit Reached"
             print(f"Episode finished! [{reason}]")
             print(f"P1 Score: {info['agent_control']:.1f} | P2 (Bot) Score: {info['opponent_control']:.1f}")
             print(f"Your total reward: {total_reward:.1f}")
