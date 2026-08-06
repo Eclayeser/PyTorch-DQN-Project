@@ -20,7 +20,7 @@ class DQN(nn.Module):
         return self.layer3(x)
 
 
-def play_against_agent(model_path="second-game-iteration/policy_net_ep_1200.pth"):
+def play_against_agent(model_path="second-game-iteration/policies/policy_net_ep_1200.pth"):
     env = ZoneCaptureEnv(render_mode="human", type="agent-testing")
     
     n_observations = env.observation_space.shape[0]

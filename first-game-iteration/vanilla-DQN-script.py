@@ -1,17 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# ReplayMemory is essential so NN - adjust weights using a batch of many transitions (not only one)
-
-# # On GAMMA
-# γ=0.99 means a reward 10 steps away is still worth `0.99^10 ≈ 0.90` of its face value — barely discounted,
-# so the agent is trained to care almost as much about long-term survival as the very next step. γ=0 would make
-# it totally short-sighted (only the immediate reward matters); γ=1 would (in an ongoing task) never converge, since#
-# infinite future reward never gets discounted away. 0.99 is a
-# standard "care a lot about the long run, but not literally infinitely" choice
-
 
 import math
-import numpy as np
 import random
 import matplotlib.pyplot as plt
 from collections import namedtuple, deque
@@ -75,7 +65,7 @@ BATCH_SIZE = 128
 GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.01
-EPS_DECAY = 15000
+EPS_DECAY = 20000
 TAU = 0.005
 LR = 3e-4
 
@@ -106,7 +96,7 @@ memory = ReplayMemory(10000)
 
 steps_done = 0
 episode_durations = []
-num_episodes = 301
+num_episodes = 601
 
 
 def select_action(state):
@@ -221,7 +211,7 @@ for i_episode in range(num_episodes):
             episode_durations.append(t + 1)
             plot_durations()
 
-            if i_episode % 20 == 0:      # every 20 episodes, show a greedy run
+            if i_episode % 200 == 0:      # every 200 episodes, show a greedy run
                 print(f"[episode {i_episode}] recording greedy run...")
                 watch_episode(policy_net, device)            
 
