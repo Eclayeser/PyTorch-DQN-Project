@@ -36,8 +36,7 @@ PLATFORM_MAX_SPEED = 380.0              # capped
 BALL_RADIUS = 8
 BALL_SPEED = 700.0                      # constant speed magnitude, px/s
 
-BALL_LAUNCH_ANGLE_MIN_DEG = 30.0        # 0 = straight right, 90 = straight up, 180 = straight left
-BALL_LAUNCH_ANGLE_MAX_DEG = 150.0
+BALL_LAUNCH_ANGLE_RANGES = [(30.0, 82.5), (97.5, 150.0)]   # 0 = straight right, 90 = straight up, 180 = straight left
 BALL_SPAWN_MARGIN = BALL_RADIUS * 3     # offset from walls/platform
 
 MAX_DURATION_SECONDS = 10.0             # truncate (success) after this long
@@ -105,7 +104,11 @@ class BouncePlatformEnv(gym.Env):
         # Spawn ball
         self.ball_x = float(self.np_random.uniform(BALL_SPAWN_MARGIN, self.width - BALL_SPAWN_MARGIN))
         self.ball_y = float(self.np_random.uniform(BALL_SPAWN_MARGIN, PLATFORM_Y - BALL_SPAWN_MARGIN))
-        angle_deg = self.np_random.uniform(BALL_LAUNCH_ANGLE_MIN_DEG, BALL_LAUNCH_ANGLE_MAX_DEG)
+        
+        range_idx = self.np_random.integers(0, 2) # select 0 or 1 to pick a range
+        min_angle, max_angle = BALL_LAUNCH_ANGLE_RANGES[range_idx]
+        angle_deg = self.np_random.uniform(min_angle, max_angle)
+        
         angle_rad = math.radians(angle_deg)
         self.ball_vx = float(BALL_SPEED * math.cos(angle_rad))
         self.ball_vy = float(-BALL_SPEED * math.sin(angle_rad))  # negative y = upward on screen
@@ -274,7 +277,7 @@ class BouncePlatformEnv(gym.Env):
 
         self.render_resources()
 
-        canvas = self.screen
+        canvas = pygame.Surface((self.width, self.height))
         canvas.fill(BLACK)
 
         # platform
@@ -297,24 +300,31 @@ class BouncePlatformEnv(gym.Env):
         canvas.blit(hud, (10, 10))
 
         
-        pygame.event.pump()
-        pygame.display.flip()
-        self.clock.tick(self.metadata["render_fps"])
-        return None
+        if self.render_mode == "human":
+            self.screen.blit(canvas, (0, 0))
+            pygame.event.pump()
+            pygame.display.flip()
+            self.clock.tick(self.metadata["render_fps"])
+            return None
+        elif self.render_mode == "rgb_array":
+            frame = pygame.surfarray.array3d(canvas)
+            return np.transpose(frame, axes=(1, 0, 2))
 
 
     def render_resources(self):
-            """
-            Helper for render()
-            """
-            if self.screen is not None:
-                return
+        """
+        Helper for render(). Only opens a real display window in "human"
+        mode, so "rgb_array" mode works headlessly.
+        """
+        if self.font is not None:
+            return
+        pygame.font.init()
+        self.font = pygame.font.SysFont("consolas", 20)
+        if self.render_mode == "human":
             pygame.init()
-            pygame.font.init()
             pygame.display.set_caption("Bounce Platform")
             self.screen = pygame.display.set_mode((self.width, self.height))
             self.clock = pygame.time.Clock()
-            self.font = pygame.font.SysFont("consolas", 20)
 
 
     def close(self):

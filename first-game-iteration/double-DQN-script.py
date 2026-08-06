@@ -83,7 +83,7 @@ env = BouncePlatformEnv()
 #render_env = BouncePlatformEnv(render_mode="human")
 render_env = RecordVideo(
     BouncePlatformEnv(render_mode="rgb_array"),
-    video_folder="first-game-iteration/videos-vanilla-DQN",
+    video_folder="first-game-iteration/videos-double-DQN",
     name_prefix="bounce",
     episode_trigger=lambda episode_id: True,
     disable_logger=True,
@@ -164,7 +164,8 @@ def optimize_model():
 
     next_state_values = torch.zeros(BATCH_SIZE, device=device)
     with torch.no_grad():
-        next_state_values[non_final_mask] = target_net(non_final_next_states).max(1).values
+        best_next_actions = policy_net(non_final_next_states).max(1).indices.unsqueeze(1)
+        next_state_values[non_final_mask] = target_net(non_final_next_states).gather(1, best_next_actions).squeeze(1)
     expected_state_action_values = (next_state_values * GAMMA) + reward_batch
 
     criterion = nn.SmoothL1Loss()
