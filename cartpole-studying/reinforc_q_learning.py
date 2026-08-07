@@ -75,6 +75,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+
 env = gym.make("CartPole-v1")
 
 # VA-1
@@ -440,7 +441,7 @@ def optimize_model():
 if torch.cuda.is_available() or torch.backends.mps.is_available():
     num_episodes = 600
 else:
-    num_episodes = 201
+    num_episodes = 301
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get its state
