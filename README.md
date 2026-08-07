@@ -6,16 +6,16 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-DQN-red)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 
-<p float="center">
-  <img src="cartpole-studying/gifs/cartpole-episode-3-gif.gif" width="30%" />
-  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-3-gif.gif" width="30%" />
-  <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-3-gif.gif" width="30%" />
+<p style="text-align: center;">
+  <img src="cartpole-studying/gifs/cartpole-episode-3-gif.gif" width="33%" />
+  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-3-gif.gif" width="33%" />
+  <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-3-gif.gif" width="33%" />
 </p>
 
-Me struggling to win against my own agent:
+**Me struggling to win against my own agent:**
 
-<p float="center">
-  <img src="second-game-iteration/videos-double-DQN/gifs/me-vs-agent.gif" width="50%" />
+<p style="text-align: center;">
+  <img src="second-game-iteration/videos-double-DQN/gifs/me-vs-agent.gif" width="75%" />
 </p>
 
 ---
@@ -67,9 +67,9 @@ Source: `https://docs.pytorch.org/tutorials/intermediate/reinforcement_q_learnin
 - **Purpose:** learning exercise for the DQN implementation / experimenting with code
 - **Environment:** OpenAI Gym `CartPole-v1`
 
-<p float="center">
-  <img src="cartpole-studying/gifs/cartpole-episode-2-gif.gif" width="40%" />
-  <img src="cartpole-studying/gifs/cartpole-episode-3-gif.gif" width="40%" />
+<p style="text-align: center;">
+  <img src="cartpole-studying/gifs/cartpole-episode-2-gif.gif" width="50%" />
+  <img src="cartpole-studying/gifs/cartpole-episode-3-gif.gif" width="50%" />
 </p>
 
 **What I learned:**
@@ -86,16 +86,16 @@ Source: `https://docs.pytorch.org/tutorials/intermediate/reinforcement_q_learnin
 
 A simple game I built using the Gymnasium environment: the agent controls a platform that must move left/right to keep a ball from falling past the bottom of the screen. Made it fast-paced on purpose in order to reduce training time.
 
-<p float="center">
-  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-1-gif.gif" width="30%" />
-  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-2-gif.gif" width="30%" />
-  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-3-gif.gif" width="30%" />
+<p style="text-align: center;">
+  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-1-gif.gif" width="33%" />
+  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-2-gif.gif" width="33%" />
+  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-3-gif.gif" width="33%" />
 </p>
 
 **Progress Graph:**
 
-<p float="center">
-  <img src="first-game-iteration/vanilla_DQN_graph.png" width="60%" />
+<p style="text-align: center;">
+  <img src="first-game-iteration/vanilla_DQN_graph.png" width="50%" />
 </p>
 
 **Results:**
@@ -117,9 +117,9 @@ I decided to explore the concept of Double DQN: it was developed in order to res
 
 **Progress Graphs (2 runs):**
 
-<p float="center">
-  <img src="first-game-iteration/double_DQN_graph_1.png" width="40%" />
-  <img src="first-game-iteration/double_DQN_graph_2.png" width="40%" />
+<p style="text-align: center;">
+  <img src="first-game-iteration/double_DQN_graph_1.png" width="50%" />
+  <img src="first-game-iteration/double_DQN_graph_2.png" width="50%" />
 </p>
 
 **Results:**
@@ -141,16 +141,16 @@ In my view, this drop in performance is a clear example of policy failure, known
 
 A significantly harder environment where the agent plays **against** the user, having been trained against a scripted bot opponent. This was much more fun to implement and test, as I could physically play against my own trained model.
 
-<p float="center">
-  <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-1-gif.gif" width="30%" />
-  <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-2-gif.gif" width="30%" />
-  <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-3-gif.gif" width="30%" />
+<p style="text-align: center;">
+  <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-1-gif.gif" width="33%" />
+  <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-2-gif.gif" width="33%" />
+  <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-3-gif.gif" width="33%" />
 </p>
 
 **Progress Graph:**
 
-<p float="center">
-  <img src="second-game-iteration/graph.png" width="60%" />
+<p style="text-align: center;">
+  <img src="second-game-iteration/graph.png" width="50%" />
 </p>
 
 **What made this harder:**
