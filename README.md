@@ -12,7 +12,7 @@
   <img src="second-game-iteration/videos-double-DQN/gifs/zone_controller-episode-3-gif.gif" width="32%" />
 </p>
 
-**Me struggling to win against my own agent:**
+**Me (Yellow) struggling to win against my own agent:**
 
 <p align="center">
   <img src="second-game-iteration/videos-double-DQN/gifs/me-vs-agent.gif" width="75%" />
