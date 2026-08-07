@@ -218,15 +218,19 @@ If you want to test out other policies, change `model_path` in `second-game-iter
 ## Key Learnings
 
 **Exploring the Right Balance between Exploration and Exploitation**
+
 I have acquired an understanding of how to guide the learning process of an agent over time. I now know how to properly correlate the rate of decay of the exploration factor (epsilon) with the duration of training.
 
 **Reinforcement Learning Algorithms for Large-Scale Environments**
+
 I have learned to modify reinforcement learning algorithms in order to work with larger state and action spaces. I am aware of the ways of tuning key parameters so that complex decision-making would be made possible.
 
 **Engineering Environments for RL Training**
+
 I have experience building custom simulation environments from scratch in order to support training using Deep Q-Learning. I am capable of analyzing weaknesses in a particular model design and engineering specific mechanics, such as calculating reward, controlling the pacing of the simulation or increasing/decreasing observation complexity, to optimize training time.
 
 **Optimization of AI Inference for Production**
+
 I have learnt how to optimize and benchmark trained neural networks to achieve extremely efficient inference performance using ONNX runtime: an important technique for scaling AI without causing bottlenecks on system infrastructure.
 
 ---
