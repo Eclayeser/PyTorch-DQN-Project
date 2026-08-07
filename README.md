@@ -6,5 +6,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-DQN-red)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
 
-![First episode](first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-1-gif.gif)
-![Second episode](first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-2-gif.gif)
+<p float="left">
+  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-1-gif.gif" width="45%" />
+  <img src="first-game-iteration/videos-vanilla-DQN/gifs/bounce-episode-2-gif.gif" width="45%" />
+</p>
